@@ -1,0 +1,38 @@
+import OpenAI from "openai";
+import {HttpsProxyAgent} from "https-proxy-agent"
+import {NextResponse} from "next/server";
+import {auth} from "@clerk/nextjs";
+
+const agent = new HttpsProxyAgent('http://127.0.0.1:7890');
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY_1,
+  httpAgent: agent
+});
+
+export async function POST(req: Request) {
+  try {
+    const {userId} = auth()
+    const body = await req.json()
+    const {messages} = body
+
+    if (!userId) {
+      return new NextResponse("Unauthorized", {status: 401})
+    }
+
+    if (!messages) {
+      return new NextResponse("Messages are required", {status: 400})
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages
+    })
+
+    return NextResponse.json(response.choices[0].message)
+
+  } catch (error) {
+    console.log("[CONVERSATION_ERROR]", error)
+    return new NextResponse("Internet error", {status: 500})
+  }
+}
