@@ -9,7 +9,7 @@ const agent = new HttpsProxyAgent('http://127.0.0.1:7890');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY_1,
-  httpAgent: agent
+  httpAgent: process.env.NODE_ENV === "development" ? agent : null
 });
 
 export async function POST(req: Request) {
